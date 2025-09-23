@@ -1,54 +1,85 @@
 import numpy as np
+import itertools
+    
+netfold = '../01_preSimulation/ordered'
+netfold = '/home/sima/projects/nest/n3611/02_currently/ordered'
+qntfold = 'qntfold'
 
-## size of the network blocks
 NI, NE = [ 680, 2931]
 N0 = NI+NE
+Inrn = np.arange(NI)
+Enrn = np.arange(NI,N0)
 
-# data directories
-pfold = '/mnt/sdb/sima/data/nester'
-pfold = '/Users/sima/netProject/nestStuff/degenProject/empsynthData'
-mfolds = ['/empNets', '/synthNets']
-permfold = '/permutations' # for permuters
-netfold = '/netOrdered' # for networks
-spkfold = '/spikeData' # for spikes
-qntfold = '/qntData' # for estimated quantities
 
-# netnamestring = ['relabeld_and_ordered', 'doubleRelabeled_ordered'] # emp, synth
-all_network_types = ['emp', 'er', 'sw', 'sf']
-all_degeneration_indices = list(range(2))
-all_network_iterations = list(range(10))
-all_pruning_indices = list(range(5))
-all_pruning_stages = list(range(10))
-all_g_values = [3.,4., 5., 6., 7.]
+all_network_types = [
+    'emp',
+    'erb',
+    'sfo',
+    'ero',
+    'sfr',
+    'swr'
+]
 
+nReal = 10
+nNet = 6
+nDegen = 2 
+nIndex = 10 
+nPrun = 5
+nStage = 10
 
 del_frac = 0.1
 
-nDegen = 2
-nIndex = 10
-nPrune = 5
-nStage = 10
-degeneration_indices = np.arange(nDegen) # 0 for link removal and 1 for node removal
-network_indices = np.arange(nIndex) # indices to load the desired network from a category
-pruning_indices = np.arange(nPrune) # indices for one of the five strategies per scheme
-gvalues = np.array([3.,4.,5.,6.,7.]) #the relative strength of inhibition: wINH = -g*wEXC
+J_unit = 0.005
+Je = 0.1
+mije = Je/J_unit
+p_rate = 3000.  # the rate of the poisson generator
+J_bg = Je/J_unit # 20.83 #4.4
 
 
-#parent nets are simulated and alyzed separately to avoid repeated iterations. 
-parents = [0] # parent stage -- preDegeneration
-children = np.arange(1,nStage) # stages of degeneration
 
-
-### starter simulation parameters  
-mije = .5
-J_bg = 5.
-p_rate = 15000.
 delay = 1.5
 
 simulation_time = 11. # in s
 start_record_time = 1. # in s
 dt = 0.1 # time resolution in ms
 
+duration_ms = int((simulation_time-start_record_time)*1000)+1
+
+wk0 = np.array([-3., -3., 1.5, 1])
+
+# scalezz = np.load('empLscale_rndBscale_2nets_10reals_20scales.npy')
+empscales = np.arange(0.5, 10.5, 0.5)
+scalers0 = np.load('scalers_6nets_10reals_20weights.npy')
+scalers = scalers0[...,::2]
+nWeight = scalers.shape[-1]
 
 
 
+
+
+
+# sorting for parent and degnerates
+list_pruning_types = [
+    range(1), # parent
+    range(nPrun) # children
+]
+
+
+list_pruning_stages  = [
+    range(1),
+    range(1,nStage)
+]
+
+list_paramList = [list(
+    itertools.product(
+        range(nNet),
+        range(nDegen),
+        range(nIndex),
+        list_pruning_types[ips],
+        list_pruning_stages[ips],
+        range(nWeight))
+    ) for ips in range(2)]
+
+    
+    
+    
