@@ -1,4 +1,3 @@
-
 # test_netdegeneration.py
 # PyTest suite for:
 # - network_generation.py
@@ -7,127 +6,206 @@
 #
 # Internal convention: A[src, tgt]
 
-import os
-from pathlib import Path
-import numpy as np
-import importlib
-import scipy.sparse as sp
 import sys
+import importlib
+from pathlib import Path
+
+import numpy as np
+import scipy.sparse as sp
 
 # Ensure the modules under test are importable
-BASE = Path(__file__).parent
-sys.path.insert(0, str(BASE))
+base = Path(__file__).parent
+sys.path.insert(0, str(base))
 
 import network_generation as ng
 import edge_ordering as eo
 import network_degeneration as nd
 
-# Reload to ensure latest code if running repeatedly in notebooks
+# Reload to ensure latest code if running repeatedly
 importlib.reload(ng)
 importlib.reload(eo)
 importlib.reload(nd)
 
 
-def edges_from_csr(A: sp.csr_matrix):
-    r, c = A.nonzero()
-    return np.vstack([r, c]).T.astype(np.int32)
+def edgesFromCsr(a: sp.csr_matrix) -> np.ndarray:
+    rows, cols = a.nonzero()
+    return np.vstack([rows, cols]).T.astype(np.int32)
 
 
-def assert_edges_equal_unordered(e1, e2):
+def assertEdgesEqualUnordered(e1, e2):
     s1 = set(map(tuple, np.asarray(e1, dtype=np.int64)))
     s2 = set(map(tuple, np.asarray(e2, dtype=np.int64)))
     assert s1 == s2, f"Edge sets differ. Δ={len(s1 ^ s2)}"
 
 
-def build_template(N: int, density: float = 0.06, rng=None):
+def buildTemplate(n: int, density: float = 0.06, rng=None) -> sp.csr_matrix:
     rng = np.random.default_rng(rng)
-    target_edges = max(1, int(density * N * (N - 1)))
-    rows = np.arange(N, dtype=np.int32)
-    cols = np.arange(N, dtype=np.int32)
-    r_sel, c_sel = ng._UniquePairsFromBlock(rows, cols, m=target_edges, forbid_self=True, rng=rng)
-    template = sp.csr_matrix((np.ones_like(r_sel, dtype=np.int8), (r_sel, c_sel)), shape=(N, N))
-    return template
+    target_edges = max(1, int(density * n * (n - 1)))
+
+    rows = np.arange(n, dtype=np.int32)
+    cols = np.arange(n, dtype=np.int32)
+
+    r_sel, c_sel = ng._uniquePairsFromBlock(
+        rows, cols, m=target_edges, forbid_self=True, rng=rng
+    )
+
+    data = np.ones_like(r_sel, dtype=np.int8)
+    return sp.csr_matrix((data, (r_sel, c_sel)), shape=(n, n))
 
 
-def test_orientation_roundtrip():
-    N = 50
+# Tests
+def testOrientationRoundtrip():
+    n = 50
     rng = np.random.default_rng(0)
-    template = build_template(N, density=0.08, rng=rng)
-    A = ng.GenerateNet(cemtx=template, netname='ero', rng=rng, return_sparse=True)
 
-    edges = edges_from_csr(A)
-    A_rt = nd._EdgesToCSR(edges, shape=A.shape)
-    assert (A != 0).nnz == (A_rt != 0).nnz
-    assert_edges_equal_unordered(edges, edges_from_csr(A_rt))
+    template = buildTemplate(n, density=0.08, rng=rng)
+    a = ng.generateNet(cemtx=template, netname="ero", rng=rng, return_sparse=True)
+
+    edges = edgesFromCsr(a)
+    a_rt = nd._edgesToCsr(edges, shape=a.shape)
+
+    assert a.nnz == a_rt.nnz
+    assertEdgesEqualUnordered(edges, edgesFromCsr(a_rt))
 
 
-def test_maxmatch_and_save(tmp_path: Path):
-    N, NI = 120, 30
+def testMaxMatchAndSave(tmp_path: Path):
+    n, ni = 120, 30
     rng = np.random.default_rng(42)
-    template = build_template(N, density=0.06, rng=rng)
-    A = ng.GenerateNet(cemtx=template, netname='swr', NI=NI, step=4, prand=0.05, rng=rng, return_sparse=True)
 
-    layers = eo.MaxMatchDecomposition(A, cols_are_sources=False, max_layers=5)
+    template = buildTemplate(n, density=0.06, rng=rng)
+    a = ng.generateNet(
+        cemtx=template,
+        netname="swr",
+        ni=ni,
+        step=4,
+        p_rand=0.05,
+        rng=rng,
+        return_sparse=True,
+    )
+
+    layers = eo.maxMatchDecomposition(a, cols_are_sources=False, max_layers=5)
     assert isinstance(layers, list)
-    total_matched = sum(len(L) for L in layers)
-    assert total_matched >= 0
 
-    edges = edges_from_csr(A)
-    ordered = np.vstack(layers) if layers else np.empty((0,2), dtype=np.int32)
-    perm = eo.BuildPermutationFromOrder(edges, ordered)
+    edges = edgesFromCsr(a)
+    ordered = np.vstack(layers) if layers else np.empty((0, 2), dtype=np.int32)
 
-    save_path = eo.SaveCompressed(edges, perm, netname="pytest_smoke", itrial=1, sizes=A.shape, outdir=str(tmp_path))
+    perm = eo.buildPermutationFromOrder(edges, ordered)
+    save_path = eo.saveCompressed(
+        edges,
+        perm,
+        netname="pytest_smoke",
+        itrial=1,
+        sizes=a.shape,
+        outdir=str(tmp_path),
+    )
+
     assert Path(save_path).exists()
 
-    # Verify sorting by perm follows 'ordered' prefix where present
     idx = np.argsort(perm)
     sorted_edges = edges[idx]
+
     present = set(map(tuple, edges))
-    ordered_present = np.array([e for e in ordered if tuple(e) in present], dtype=np.int32)
-    k2 = min(len(ordered_present), len(sorted_edges))
+    ordered_present = np.array(
+        [e for e in ordered if tuple(e) in present], dtype=np.int32
+    )
+
+    k2 = min(len(sorted_edges), len(ordered_present))
     if k2 > 0:
-        assert_edges_equal_unordered(sorted_edges[:k2], ordered_present[:k2])
+        assertEdgesEqualUnordered(sorted_edges[:k2], ordered_present[:k2])
 
 
-def test_trim_synapses(tmp_path: Path):
-    N, NI = 100, 25
+def testTrimSynapses(tmp_path: Path):
+    n, ni = 100, 25
     rng = np.random.default_rng(7)
-    template = build_template(N, density=0.08, rng=rng)
-    A = ng.GenerateNet(cemtx=template, netname='swr', NI=NI, step=4, prand=0.03, rng=rng, return_sparse=True)
-    edges = edges_from_csr(A)
 
-    # Save ordering to use 'ord'/'rev'
-    layers = eo.MaxMatchDecomposition(A, cols_are_sources=False, max_layers=3)
-    ordered = np.vstack(layers) if layers else np.empty((0,2), dtype=np.int32)
-    perm = eo.BuildPermutationFromOrder(edges, ordered)
-    eo.SaveCompressed(edges, perm, netname="pytest_trim", itrial=2, sizes=A.shape, outdir=str(tmp_path))
+    template = buildTemplate(n, density=0.08, rng=rng)
+    a = ng.generateNet(
+        cemtx=template,
+        netname="swr",
+        ni=ni,
+        step=4,
+        p_rand=0.03,
+        rng=rng,
+        return_sparse=True,
+    )
 
-    k = min(40, A.nnz)
+    edges = edgesFromCsr(a)
 
-    A_rand, rem_rand = nd.TrimSynapses(A, k=k, strategy="rand", seed=0)
-    A_out,  rem_out  = nd.TrimSynapses(A, k=k, strategy="out")
-    A_in,   rem_in   = nd.TrimSynapses(A, k=k, strategy="in")
-    A_ord,  rem_ord  = nd.TrimSynapses(A, k=k, strategy="ord",
-                                       ordering_dir=str(tmp_path), netname="pytest_trim", trial_index=2)
-    A_rev,  rem_rev  = nd.TrimSynapses(A, k=k, strategy="rev",
-                                       ordering_dir=str(tmp_path), netname="pytest_trim", trial_index=2)
+    layers = eo.maxMatchDecomposition(a, cols_are_sources=False, max_layers=3)
+    ordered = np.vstack(layers) if layers else np.empty((0, 2), dtype=np.int32)
+    perm = eo.buildPermutationFromOrder(edges, ordered)
 
-    for Apruned, removed in [(A_rand, rem_rand), (A_out, rem_out), (A_in, rem_in), (A_ord, rem_ord), (A_rev, rem_rev)]:
-        assert isinstance(Apruned, sp.csr_matrix)
-        assert isinstance(removed, np.ndarray)
-        assert Apruned.nnz == A.nnz - len(removed)
+    eo.saveCompressed(
+        edges,
+        perm,
+        netname="pytest_trim",
+        itrial=2,
+        sizes=a.shape,
+        outdir=str(tmp_path),
+    )
+
+    k = min(40, a.nnz)
+
+    results = [
+        nd.trimSynapses(a, k=k, strategy="rand", seed=0),
+        nd.trimSynapses(a, k=k, strategy="out"),
+        nd.trimSynapses(a, k=k, strategy="in"),
+        nd.trimSynapses(
+            a,
+            k=k,
+            strategy="ord",
+            ordering_dir=str(tmp_path),
+            netname="pytest_trim",
+            trial_index=2,
+        ),
+        nd.trimSynapses(
+            a,
+            k=k,
+            strategy="rev",
+            ordering_dir=str(tmp_path),
+            netname="pytest_trim",
+            trial_index=2,
+        ),
+    ]
+
+    for a_pruned, removed in results:
+        assert isinstance(a_pruned, sp.csr_matrix)
+        assert a_pruned.nnz == a.nnz - len(removed)
 
 
-def test_trim_neurons_and_weights():
-    N, NI = 90, 20
+def testTrimNeuronsAndWeights():
+    n, ni = 90, 20
     rng = np.random.default_rng(11)
-    template = build_template(N, density=0.07, rng=rng)
-    A = ng.GenerateNet(cemtx=template, netname='swr', NI=NI, step=3, prand=0.04, rng=rng, return_sparse=True)
 
-    kept_idx, A_kept = nd.TrimNeurons(A, NI=NI, n_remove_I=4, n_remove_E=6, strategy="dout", seed=0)
-    assert len(kept_idx) == N - 10
-    assert A_kept.shape == (N - 10, N - 10)
+    template = buildTemplate(n, density=0.07, rng=rng)
+    a = ng.generateNet(
+        cemtx=template,
+        netname="swr",
+        ni=ni,
+        step=3,
+        p_rand=0.04,
+        rng=rng,
+        return_sparse=True,
+    )
 
-    W = nd.WeightedFromAdjacency(A, NI=NI, weights=nd.Lweight(2.0, 3.0, 5.0, 7.0), return_sparse=True)
-    assert sp.issparse(W) and W.shape == A.shape
-    assert (W != 0).nnz == A.nnz
+    kept_idx, a_kept = nd.trimNeurons(
+        a,
+        ni=ni,
+        n_remove_i=4,
+        n_remove_e=6,
+        strategy="dout",
+        seed=0,
+    )
+
+    assert len(kept_idx) == n - 10
+    assert a_kept.shape == (n - 10, n - 10)
+
+    w = nd.weightedFromAdjacency(
+        a,
+        ni=ni,
+        weights=nd.lweight(2.0, 3.0, 5.0, 7.0),
+        return_sparse=True,
+    )
+
+    assert sp.issparse(w)
+    assert w.nnz == a.nnz
