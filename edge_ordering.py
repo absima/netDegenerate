@@ -5,20 +5,7 @@ import os
 import numpy as np
 from scipy.sparse import coo_matrix, csr_matrix, issparse
 
-# ==========================================================
-# ORIENTATION CONTRACT (internal)
-# ----------------------------------------------------------
-# - We store edges as: A[src, tgt] = 1
-#   rows   = sources (left side for matching by default)
-#   cols   = targets (right side for matching by default)
-# - Canonical edge tuples are (src, tgt).
-# - If an external routine assumes rows=targets, cols=sources, use M.T at the boundary.
-# ==========================================================
 
-
-# -----------------------------
-# Normalization helpers
-# -----------------------------
 def _normalizeToCsr(
     graph,
     shape: tuple[int, int] | None = None,
@@ -77,9 +64,8 @@ def _edgesFromCsr(mtx: csr_matrix) -> np.ndarray:
     return np.vstack([src.astype(np.int32), tgt.astype(np.int32)]).T
 
 
-# -----------------------------
-# Permutation utilities
-# -----------------------------
+
+
 def buildPermutationFromOrder(edges_base: np.ndarray, ordered_edges: np.ndarray) -> np.ndarray:
     """
     Build a stable mapping from `edges_base` to the order defined by `ordered_edges`.
@@ -164,9 +150,7 @@ def saveCompressed(
     return path
 
 
-# -----------------------------
 # Hopcroft–Karp bipartite matching
-# -----------------------------
 def _hkMaximumMatchingCsr(mtx: csr_matrix) -> tuple[np.ndarray, np.ndarray]:
     """
     Hopcroft–Karp on a bipartite graph represented by a CSR adjacency
@@ -295,7 +279,7 @@ def maxMatchDecomposition(
     layers: list[np.ndarray] = []
 
     # Work on a copy we can mutate
-    a = mtx.tolil(copy=True)  # LIL for efficient deletions
+    a = mtx.tolil(copy=True)  # LIst of Lists, to preserve mtx.
     n_iter = 0
 
     while a.nnz > 0 and (max_layers is None or n_iter < max_layers):

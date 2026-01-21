@@ -1,10 +1,9 @@
-# test_netdegeneration.py
 # PyTest suite for:
 # - network_generation.py
 # - edge_ordering.py
 # - trimming.py
 #
-# Internal convention: A[src, tgt]
+# local convention: A[src, tgt]
 
 import sys
 import importlib

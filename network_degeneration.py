@@ -1,4 +1,3 @@
-# trimming.py
 from __future__ import annotations
 
 import os
@@ -8,20 +7,6 @@ import numpy as np
 from scipy.sparse import coo_matrix, csr_matrix, issparse
 
 
-# ==========================================================
-# ORIENTATION CONTRACT (internal)
-# ----------------------------------------------------------
-# - We store edges as: A[src, tgt] = 1
-#   rows   = sources
-#   cols   = targets
-# - Canonical edge tuples are (src, tgt).
-# - If an external routine expects rows=targets, cols=sources, use M.T at the boundary.
-# ==========================================================
-
-
-# -----------------------------
-# Lightweight weighting helpers
-# -----------------------------
 def lweight(w_ii: float, w_ie: float, w_ei: float, w_ee: float) -> Dict[str, float]:
     """
     Convenience builder for a 4-block weight dictionary:

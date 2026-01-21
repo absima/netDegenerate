@@ -1,22 +1,16 @@
-# network_generation.py
 from __future__ import annotations
 
 import numpy as np
 from scipy.sparse import coo_matrix, csr_matrix, issparse
 
-
-# ==========================================================
-# ORIENTATION CONTRACT (internal, baseline for this project)
-# ----------------------------------------------------------
+# during generation,
 # - We store edges as: A[src, tgt] = 1
 #   rows   = sources
 #   cols   = targets
 # - Canonical edge tuples are (src, tgt).
-# - If an external routine expects rows=targets/cols=sources, use M.T at the boundary.
 # - When converting to/from edges:
 #     * from matrix -> edges: (src, tgt) = M.nonzero() as (row, col)
 #     * from edges  -> matrix: place ones at (row=src, col=tgt)
-# ==========================================================
 
 
 def _uniquePairsFromBlock(
@@ -268,7 +262,7 @@ def generateDecayMatrix(
     Generate a binary adjacency with density decaying from top-left:
     prob ~ exp(-decay_rate * distance**power). Useful as an unrelabeled null.
 
-    INTERNAL ORIENTATION: returns A[src, tgt].
+    one way of generating network with hetrogenous deg_dist
     """
     rng = np.random.default_rng(rng)
 
@@ -324,29 +318,34 @@ def smallWorldDirected(
     return_sparse: bool = True,
 ):
     """
-    Directed small-world–like digraph via ring-lattice + rewiring. Returns exactly n_edges edges.
+    Directed small-world–like digraph via ring-lattice + rewiring.
+    Returns exactly n_edges edges.
 
     INTERNAL ORIENTATION: returns A[src, tgt].
     """
     rng = np.random.default_rng(rng)
 
+    # --- determine baseline out-degree per node ---
     k_max = max(0, n - 1) if forbid_self else n
     k = int(np.ceil(n_edges / n))
     k = int(min(max(0, k), k_max))
 
+    # --- build initial ring-lattice edges ---
     if k == 0:
         rows = np.array([], dtype=np.int32)
         cols = np.array([], dtype=np.int32)
     else:
         rows = np.repeat(np.arange(n, dtype=np.int32), k)  # sources
         t = np.arange(1, k + 1, dtype=np.int32)
-        cols = (np.arange(n, dtype=np.int32)[:, None] + t) % n  # forward neighbors (targets)
+        cols = (np.arange(n, dtype=np.int32)[:, None] + t) % n  # forward neighbors
         cols = cols.reshape(-1).astype(np.int32)
 
+        # remove self-loops if disallowed
         if forbid_self:
             mask = rows != cols
             rows, cols = rows[mask], cols[mask]
 
+    # --- deduplicate (defensive; ring lattice should already be unique) ---
     if rows.size:
         order = np.lexsort((cols, rows))
         rows, cols = rows[order], cols[order]
@@ -354,16 +353,19 @@ def smallWorldDirected(
         dedup[1:] = (rows[1:] != rows[:-1]) | (cols[1:] != cols[:-1])
         rows, cols = rows[dedup], cols[dedup]
 
+    # --- adjust edge count to exactly n_edges ---
     e0 = rows.size
     if e0 > n_edges:
+        # too many edges → randomly downsample
         take = rng.choice(e0, size=n_edges, replace=False)
         rows, cols = rows[take], cols[take]
+
     elif e0 < n_edges:
+        # too few edges → randomly add non-edges
         need = n_edges - e0
         edge_set = set(zip(rows.tolist(), cols.tolist()))
         batch = max(need, int(1.25 * need))
-        add_r: list[int] = []
-        add_c: list[int] = []
+        add_r, add_c = [], []
 
         while need > 0:
             r = rng.integers(0, n, size=batch, dtype=np.int64)
@@ -389,6 +391,7 @@ def smallWorldDirected(
             rows = np.concatenate([rows, np.array(add_r, dtype=np.int32)])
             cols = np.concatenate([cols, np.array(add_c, dtype=np.int32)])
 
+    # rewire a fraction of edges (ones) to random non-edges (zeros)
     m = rows.size
     if p_rand > 0 and m > 0:
         n_rewire = int(np.floor(p_rand * m))
@@ -400,8 +403,7 @@ def smallWorldDirected(
             rows_keep, cols_keep = rows[keep_mask], cols[keep_mask]
             edge_set = set(zip(rows_keep.tolist(), cols_keep.tolist()))
 
-            new_r: list[int] = []
-            new_c: list[int] = []
+            new_r, new_c = [], []
             need = n_rewire
             batch = max(need, int(1.25 * need))
 
@@ -431,10 +433,9 @@ def smallWorldDirected(
     data = np.ones(rows.size, dtype=np.int8)
     a = coo_matrix((data, (rows, cols)), shape=(n, n)).tocsr()
     a.sum_duplicates()
+    a.data[:] = 1  
+    return a if return_sparse else a.toarray()
 
-    if return_sparse:
-        return a
-    return a.toarray()
 
 
 # =========
