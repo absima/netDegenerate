@@ -58,7 +58,7 @@ def testOrientationRoundtrip():
     rng = np.random.default_rng(0)
 
     template = buildTemplate(n, density=0.08, rng=rng)
-    a = ng.generateNet(cemtx=template, netname="ero", rng=rng, return_sparse=True)
+    a = ng.generateNet(ce_mtx=template, netname="ero", rng=rng, return_sparse=True)
 
     edges = edgesFromCsr(a)
     a_rt = nd._edgesToCsr(edges, shape=a.shape)
@@ -73,7 +73,7 @@ def testMaxMatchAndSave(tmp_path: Path):
 
     template = buildTemplate(n, density=0.06, rng=rng)
     a = ng.generateNet(
-        cemtx=template,
+        ce_mtx=template,
         netname="swr",
         ni=ni,
         step=4,
@@ -119,7 +119,7 @@ def testTrimSynapses(tmp_path: Path):
 
     template = buildTemplate(n, density=0.08, rng=rng)
     a = ng.generateNet(
-        cemtx=template,
+        ce_mtx=template,
         netname="swr",
         ni=ni,
         step=4,
@@ -178,7 +178,7 @@ def testTrimNeuronsAndWeights():
 
     template = buildTemplate(n, density=0.07, rng=rng)
     a = ng.generateNet(
-        cemtx=template,
+        ce_mtx=template,
         netname="swr",
         ni=ni,
         step=3,
