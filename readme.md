@@ -7,22 +7,11 @@ This repository implements a **generic, modular pipeline for network generation,
 
 ## Pipeline overview
 
-
-```mermaid
-flowchart TD
-    A[Generate / Load Network]
-    B[Edge Ordering<br/>(MaxMatch Decomposition)]
-    C[Degeneration<br/>(Synapse / Neuron, staged)]
-    D[Weighting<br/>(E/I 4-block scaling)]
-    E[Simulation + Analysis + Store]
-
-    A --> B --> C --> D --> E
-
-```
-
-
-
-Each stage produces well-defined artifacts that can be reused independently or orchestrated later via workflow managers (e.g. Snakemake).
+1. **Generate / Load Network**
+2. **Edge Ordering** (maximum matching decomposition)
+3. **Degeneration** (synapse or neuron, staged)
+4. **Weighting** (E/I 4-block scaling)
+5. **Simulation + Analysis + Store**
 
 ---
 
