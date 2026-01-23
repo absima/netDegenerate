@@ -8,20 +8,17 @@ This repository implements a **generic, modular pipeline for network generation,
 ## Pipeline overview
 
 
-[ Generate / Load Network ]
-        |
-        v
-[ Edge Ordering (MaxMatch Decomposition) ]
-        |
-        v
-[ Degeneration (Synapse / Neuron, staged) ]
-        |
-        v
-[ Weighting (E/I 4-block scaling) ]
-        |
-        v
-[ Simulation + Analysis + Store ]
+```mermaid
+flowchart TD
+    A[Generate / Load Network]
+    B[Edge Ordering<br/>(MaxMatch Decomposition)]
+    C[Degeneration<br/>(Synapse / Neuron, staged)]
+    D[Weighting<br/>(E/I 4-block scaling)]
+    E[Simulation + Analysis + Store]
 
+    A --> B --> C --> D --> E
+
+```
 
 
 
