@@ -1,11 +1,6 @@
-# Network Degeneration Pipeline
+# Network Degeneration and Simulation Pipeline
 
-This repository implements a **generic, modular pipeline for network generation, ordering, degeneration, and analysis**, designed with neuroscience applications in mind but mostly generic. 
-
-
----
-
-## Pipeline overview
+## Overview
 
 1. **Generate / Load Network**
 2. **Edge Ordering** (maximum matching decomposition)
@@ -13,108 +8,93 @@ This repository implements a **generic, modular pipeline for network generation,
 4. **Weighting** (E/I 4-block scaling)
 5. **Simulation + Analysis + Store**
 
----
+```
+Generate / Load Network
+        ↓
+Edge Ordering (Max-Matching Decomposition)
+        ↓
+Degeneration (Synapse / Neuron, staged)
+        ↓
+Weighting (E/I 4-block scaling)
+        ↓
+Simulation + Analysis
+        ↓
+Parallel Aggregation + Stacking
+```
 
-## What this repository is about
+This repository implements a **network-centric simulation pipeline** for studying how **structural degeneration** affects **dynamical activity** in spiking neuronal networks.
 
-This project focuses on **Stage I: structural network processing**, with the following goals:
-
-- Provide **multiple network families** (random, small-world, spatial, scale-free-like).
-- Define a **canonical edge and matrix convention** used consistently throughout.
-- Introduce an **ordering of edges via repeated maximum matching**, enabling controlled degeneration strategies.
-- Implement **degeneration protocols** that operate on either synapses or neurons.
-- Keep the pipeline **agnostic to the simulator**, while demonstrating one concrete end-to-end use case.
-
-The simulation step included here is **illustrative**.
-
----
-
-## Conventions (used throughout)
-
-- **Edge list:** `(src, tgt)`
-- **Adjacency matrix:** `M[tgt, src] = 1` means `src → tgt`
+The workflow is explicitly divided into two conceptual phases, distinguished by the *type of data they operate on*.
 
 ---
 
-## What is implemented
+## 1. Presimulation (Structure-first)
 
-### 1. Network generation
-Multiple directed network families are supported, including:
-- Erdős–Rényi–type random graphs
-- Degree-controlled variants
-- Spatial / distance-dependent networks
-- Small-world–like directed graphs
-- Prototype “empirical-like” templates
+Operations in this phase act **purely on network structure** — graphs, edges, nodes, and weights — without any neural dynamics.
 
-Generation produces **binary sparse adjacency matrices** with no self-loops and duplicates.
+**Data objects:** adjacency matrices, edge lists, node indices, weight matrices.
 
----
+Main steps:
 
-### 2. Edge ordering (maximum matching decomposition)
-Edges are ordered by **iteratively extracting maximum matchings**:
-- Each layer is a matching (no shared sources or targets).
-- Layers are concatenated to produce a full edge ordering.
-- This ordering enables structured degeneration (e.g. early vs late removal).
+- **Network generation**  
+  Creation of directed E/I networks, either synthetic (null models) or empirical-inspired.
 
----
+- **Edge ordering**  
+  Deterministic ordering of network edges using **maximum matching decomposition**, producing a reproducible edge sequence.
 
-### 3. Structural degeneration
-Two degeneration modes are implemented:
+- **Network degeneration**  
+  Stage-wise structural degradation:
+  - *Synaptic pruning* (edge removal)
+  - *Neuron deletion* (node removal)  
+  applied according to the ordered edge list.
 
-- **Synapse trimming**
-  - Random
-  - In-degree–based
-  - Out-degree–based
-  - Ordered (using the matching decomposition)
-  - Reverse-ordered 
+- **Weight assignment**  
+  Block-wise synaptic scaling (II, IE, EI, EE) to produce weighted connectivity matrices.
 
-- **Neuron trimming**
-  - Degree-based strategies
-  - Separate control of inhibitory and excitatory populations
+At the end of this phase, the pipeline yields **degenerating network instances** ready for simulation.
 
 ---
 
-### 4. Weight allocation
-Binary adjacency matrices are converted to weighted networks using **block-structured I/E weights**:
+## 2. Simulation & Postsimulation (Dynamics + Analysis)
 
-- II, IE, EI, EE blocks (here XY means Y to X)
-- Explicit weight dictionaries
+Once a network instance is fixed, the pipeline proceeds to neural dynamics and analysis.
+
+**Data objects:** spike trains, time series, activity statistics.
+
+Main steps:
+
+- **Simulation**  
+  Spiking network simulation (currently via **NEST**), producing:
+  - Spike trains
+  - Time series (e.g. membrane voltage, synaptic currents)
+
+- **Postsimulation analysis**  
+  Extraction of two complementary classes of observables:
+
+  **Activity-based measures**
+  - Firing rates, 
+  - Coefficient of Variation in ISI
+  - Synchrony metrics
+  - Pairwise spiking correlation
+
+  **Structure-based measures**
+  - Degree statistics
+  - Weighted sums
+  - pairwise common presynaptic neighbours
+  - Spectral radius
+  - Block-level connectivity summaries
+
+All observables are stored as structured `.npz` files and later **aggregated across the full parameter grid** into high-dimensional arrays for downstream analysis.
 
 ---
 
-### 5. Simulation & analysis (example)
-A single wrapper (`simulateAndStore`) demonstrates how the structural pipeline can be coupled to a simulator:
 
-- Builds the weighted network
-- Runs a short simulation
-- Computes basic structural and dynamical observables
-- Stores results to disk
-
----
-
-### 6. Tests and demos
-
-The `tests_and_demo/` directory contains:
-
-- **Unit tests** for presimulation components  
-  (generation, ordering, degeneration, weighting)
-- **End-to-end cascade demo**  
-  (generation → ordering → trimming → simulation)
-- **Visualization utilities** for sanity checks and inspection
-
-These scripts are meant for **verification and development**.
-
----
 
 
 ## Outlook
 
 Planned next steps include:
 - Formal Snakemake workflows
-- Simulator-independent dynamical backends
-- Larger-scale parameter sweeps
-- Extended structural observables
-- more visualizing helpers
 - feature correlation and prediction analysis
 
 ---
