@@ -18,8 +18,6 @@ Stacking output
 
 This repository implements a **network-centric simulation pipeline** for studying how **structural degeneration** affects **dynamical activity** in spiking neuronal networks.
 
-The workflow is explicitly divided into two conceptual phases, distinguished by the *type of data they operate on*.
-
 ---
 
 ## 1. Presimulation (Structure-first)
@@ -53,7 +51,7 @@ At the end of this phase, the pipeline yields **degenerating network instances**
 
 Once a network instance is fixed, the pipeline proceeds to neural dynamics and analysis.
 
-**Data objects:** spike trains, time series, activity statistics.
+**Data objects:** spike trains, time series, activity statistics and networks
 
 Main steps:
 
