@@ -2,12 +2,6 @@
 
 ## Overview
 
-1. **Generate / Load Network**
-2. **Edge Ordering** (maximum matching decomposition)
-3. **Degeneration** (synapse or neuron, staged)
-4. **Weighting** (E/I 4-block scaling)
-5. **Simulation + Analysis + Store**
-
 ```
 Generate / Load Network
         ↓
@@ -17,9 +11,9 @@ Degeneration (Synapse / Neuron, staged)
         ↓
 Weighting (E/I 4-block scaling)
         ↓
-Simulation + Analysis
+Simulation/Parallelizing + Analysis
         ↓
-Parallel Aggregation + Stacking
+Stacking output
 ```
 
 This repository implements a **network-centric simulation pipeline** for studying how **structural degeneration** affects **dynamical activity** in spiking neuronal networks.
