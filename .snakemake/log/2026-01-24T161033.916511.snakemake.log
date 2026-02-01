@@ -1,0 +1,59 @@
+Assuming unrestricted shared filesystem usage.
+host: mcsima
+Building DAG of jobs...
+Your conda installation is not configured to use strict channel priorities. This is however important for having robust and correct environments (for details, see https://conda-forge.org/docs/user/tipsandtricks.html). Please consider to configure strict priorities by executing 'conda config --set channel_priority strict'.
+Creating conda environment envs/gen.yml...
+Downloading and installing remote packages.
+Cleaning up conda package tarballs.
+Environment for /Users/sima/netProject/nestZone/02_netDegeneration/envs/gen.yml created (location: .snakemake/conda/d3cfa879e15d8e6f505df39abed031c7_)
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job                    count
+-------------------  -------
+all                        1
+gen_or_load_network        2
+total                      3
+
+Select jobs to execute...
+Execute 1 jobs...
+[Sat Jan 24 16:10:59 2026]
+localrule gen_or_load_network:
+    output: data/emp_0.npz
+    jobid: 1
+    reason: Missing output files: data/emp_0.npz; Software environment definition has changed since last execution
+    wildcards: netname=emp, iteration=0
+    resources: tmpdir=/var/folders/6k/kchs3t092q383l3mv6jldmkw0000gn/T
+Shell command: 
+        python scripts/network_generation.py \
+          --netname "emp" \
+          --iteration "0" \
+          --out "data/emp_0.npz"
+        
+Activating conda environment: .snakemake/conda/d3cfa879e15d8e6f505df39abed031c7_
+Select jobs to execute...
+Waiting at most 5 seconds for missing files:
+data/emp_0.npz (missing locally)
+MissingOutputException in rule gen_or_load_network in file "/Users/sima/netProject/nestZone/02_netDegeneration/Snakefile", line 13:
+Job 1  completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+data/emp_0.npz (missing locally, parent dir contents: qntfold, .DS_Store, emp_ordered_0.npz)
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look below for error messages
+[Sat Jan 24 16:11:13 2026]
+Error in rule gen_or_load_network:
+    message: None
+    jobid: 1
+    output: data/emp_0.npz
+    conda-env: /Users/sima/netProject/nestZone/02_netDegeneration/.snakemake/conda/d3cfa879e15d8e6f505df39abed031c7_
+    shell:
+        
+        python scripts/network_generation.py \
+          --netname "emp" \
+          --iteration "0" \
+          --out "data/emp_0.npz"
+        
+        (command exited with non-zero exit code)
+Complete log(s): /Users/sima/netProject/nestZone/02_netDegeneration/.snakemake/log/2026-01-24T161033.916511.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

@@ -1,0 +1,11 @@
+prefix=/Users/sima/netProject/nestZone/02_netDegeneration/.snakemake/conda/d3cfa879e15d8e6f505df39abed031c7_
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+toolexeclibdir=${libdir}
+includedir=/Users/sima/netProject/nestZone/02_netDegeneration/.snakemake/conda/d3cfa879e15d8e6f505df39abed031c7_/include
+
+Name: libffi
+Description: Library supporting Foreign Function Interfaces
+Version: 3.5.2
+Libs: -L${toolexeclibdir} -lffi
+Cflags: -I${includedir}

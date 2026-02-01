@@ -1,0 +1,9 @@
+outdir: "data"
+
+# Network families (Stage I)
+netnames:
+  - emp
+  - erb
+
+# Repetitions / iterations per netname
+iterations: [0]

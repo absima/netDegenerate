@@ -1,0 +1,5 @@
+#!/Users/sima/netProject/nestZone/02_netDegeneration/.snakemake/conda/d3cfa879e15d8e6f505df39abed031c7_/bin/python3.10
+
+import pydoc
+if __name__ == '__main__':
+    pydoc.cli()
