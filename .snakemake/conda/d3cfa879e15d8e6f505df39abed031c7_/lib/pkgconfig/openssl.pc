@@ -1,9 +1,0 @@
-prefix=/Users/sima/netProject/nestZone/02_netDegeneration/.snakemake/conda/d3cfa879e15d8e6f505df39abed031c7_
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include 
-
-Name: OpenSSL
-Description: Secure Sockets Layer and cryptography libraries and tools
-Version: 3.6.0
-Requires: libssl libcrypto
