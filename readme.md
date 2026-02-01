@@ -1,6 +1,6 @@
 # Network Degeneration and Simulation Pipeline
 
-![Reproducible coffee market analytics pipeline](images/degeneration.png)
+![degeneration pipeline](images/degeneration.png)
 
 ## Overview
 
