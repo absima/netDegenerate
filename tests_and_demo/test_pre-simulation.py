@@ -169,7 +169,6 @@ def testTrimSynapses():
         assert sp.issparse(a_pruned)
         assert a_pruned.nnz == expected_nnz
 
-
 def testTrimNeuronsAndWeights():
     # Patch globals so trimNeurons uses our intended N, NI, etc.
     n, ni = 90, 20

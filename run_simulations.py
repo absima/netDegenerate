@@ -8,13 +8,9 @@ The parameter tuples come from simulation_pipeline.list_paramList and follow:
 from simulation_pipeline import *
 
 
-def main():
-    """
-    Execute parent and degenerated simulation batches.
 
-    Returns:
-        None
-    """
+
+if __name__ == "__main__":
     start_time = time.strftime("%H:%M:%S", time.localtime())
 
     # Single test point:
@@ -34,7 +30,3 @@ def main():
     finish_time = time.strftime("%H:%M:%S", time.localtime())
     print("started at: ", start_time)
     print("stopped at: ", finish_time)
-
-
-if __name__ == "__main__":
-    main()

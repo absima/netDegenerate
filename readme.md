@@ -47,6 +47,7 @@ Main steps:
 
 At the end of this phase, the pipeline yields **degenerating network instances** ready for simulation.
 
+
 ---
 
 ## 2. Simulation & Postsimulation (Dynamics + Analysis)

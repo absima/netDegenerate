@@ -847,14 +847,6 @@ def simulate_weighted_network(
     }
 
 
-# def compute_population_ff(pop_spike_count, n_neurons, dt, ff_bin_ms):
-#     bin_steps = int(round(ff_bin_ms / dt))
-#     if len(pop_spike_count) == 0 or bin_steps <= 0:
-#         return np.nan
-#     bins = np.add.reduceat(pop_spike_count, np.arange(0, len(pop_spike_count), bin_steps))
-#     mean_bins = np.mean(bins) + 1e-12
-#     return np.var(bins) / mean_bins
-
 
 # ==========================================================
 # Main pipeline replacement

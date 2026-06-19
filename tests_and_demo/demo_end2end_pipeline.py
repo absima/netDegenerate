@@ -10,7 +10,6 @@ import simulation_pipeline as P
 import network_generation as ng
 import edge_ordering as eo
 
-
 def _edges_from_csr(a: sp.csr_matrix) -> np.ndarray:
     """Return (src,tgt) edges from CSR stored as M[tgt,src]."""
     tgt, src = a.nonzero()

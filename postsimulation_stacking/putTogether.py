@@ -234,8 +234,6 @@ def v76_wpn(key, reorder=True):
     return z, variables, mvariables, indices
     
     
-
-
 bdata = np.load('data/tuned_untuned_42vars_3cats.npz')
 
 ### untuned
