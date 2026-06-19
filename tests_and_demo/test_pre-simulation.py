@@ -12,7 +12,7 @@ sys.path.insert(0, str(base))
 
 import network_generation as ng
 import edge_ordering as eo
-import network_degeneration as nd
+import simulation_pipeline as nd
 
 importlib.reload(ng)
 importlib.reload(eo)
@@ -59,14 +59,14 @@ def buildTemplate(n: int, density: float = 0.06, rng=None) -> sp.csr_matrix:
 
 def setNdGlobalsForTest(n: int, ni: int):
     """
-    network_degeneration.py uses module globals N/NI/NE/inrn/enrn in older variants.
+    simulation_pipeline.py uses module globals N0/NI/NE/Inrn/Enrn.
     Patch them for small, fast tests.
     """
-    nd.N = int(n)
     nd.NI = int(ni)
     nd.NE = int(n - ni)
-    nd.inrn = np.arange(nd.NI)
-    nd.enrn = np.arange(nd.NI, nd.N)
+    nd.N0 = int(n)
+    nd.Inrn = np.arange(nd.NI)
+    nd.Enrn = np.arange(nd.NI, nd.N0)
 
 
 def testOrientationRoundtrip():
@@ -202,13 +202,10 @@ def testTrimNeuronsAndWeights():
     assert sp.issparse(a_kept)
     assert a_kept.shape == (expected_n, expected_n)
 
-    # weightedFromAdjacency expects dict weights now
-    weights = {"II": 2.0, "EI": 3.0, "IE": 5.0, "EE": 7.0}
+    weights = [2.0, 3.0, 5.0, 7.0]
 
     w = nd.weightedFromAdjacency(a.tocoo(), ni, weights)
     assert sp.issparse(w)
     assert w.nnz == a.nnz
-
-
 
 

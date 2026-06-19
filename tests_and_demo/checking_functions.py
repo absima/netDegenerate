@@ -6,7 +6,7 @@ from pathlib import Path
 
 from network_generation import smallWorldDirected, generateNet
 from edge_ordering import maxMatchDecomposition
-import network_degeneration as nd
+import simulation_pipeline as nd
 
 
 # Matrix convention everywhere in this file:
@@ -25,16 +25,16 @@ def _edgeSet(a: sp.csr_matrix) -> set[tuple[int, int]]:
 
 def _setNdGlobalsForDemo(N: int, NI: int) -> None:
     """
-    network_degeneration (old trimming code) uses module globals:
-      N, NI, NE, inrn, enrn, del_frac
+    simulation_pipeline uses module globals:
+      N0, NI, NE, Inrn, Enrn, del_frac
 
     Patch them so our small demos behave correctly.
     """
-    nd.N = int(N)
     nd.NI = int(NI)
     nd.NE = int(N - NI)
-    nd.inrn = np.arange(nd.NI)
-    nd.enrn = np.arange(nd.NI, nd.N)
+    nd.N0 = int(N)
+    nd.Inrn = np.arange(nd.NI)
+    nd.Enrn = np.arange(nd.NI, nd.N0)
 
 
 def demoSmallWorldDirected():

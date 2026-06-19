@@ -6,13 +6,9 @@ from pathlib import Path
 import numpy as np
 import scipy.sparse as sp
 
-import parameters as P
+import simulation_pipeline as P
 import network_generation as ng
 import edge_ordering as eo
-import network_degeneration as nd
-
-# CHANGE THIS import to wherever your simulateAndStore() lives:
-from simulating import simulateAndStore  # <-- rename module if needed
 
 
 def _edges_from_csr(a: sp.csr_matrix) -> np.ndarray:
@@ -28,22 +24,13 @@ def run_cascade(data_dir: str | Path, paramss: tuple[int, int, int, int, int, in
     data_dir.mkdir(parents=True, exist_ok=True)
 
     # ---- unpack paramss (as you defined) ----
-    cp_index, ilb, inet, idtyp, idxprun, istage, iscale = paramss
+    ilb, cp_index, inet, idtyp, idxprun, istage, iscale = paramss
     netname = P.netnames[inet]
 
     # ---- Route all I/O folders to data_dir (so we don’t touch /parent_dir etc.) ----
-    # parameters.py
     P.netfold = str(data_dir)
     P.qntfold = str(data_dir)
-    if not hasattr(P, "curfold"):
-        P.curfold = str(data_dir)
-    else:
-        P.curfold = str(data_dir)
-
-    # network_degeneration imported names via "from parameters import *", so patch module globals too
-    nd.netfold = str(data_dir)
-    nd.qntfold = str(data_dir)
-    nd.curfold = str(data_dir)  # harmless even if unused
+    P.curfold = str(data_dir)
 
     # ---- (3) generate untrimmed network and save sparse adjacency ----
     rng = np.random.default_rng(cp_index)
@@ -51,7 +38,7 @@ def run_cascade(data_dir: str | Path, paramss: tuple[int, int, int, int, int, in
     a = ng.generateNet(
         ce_mtx=None,
         netname=netname,
-        N=P.N,          # IMPORTANT: explicit N
+        N=P.N0,         # IMPORTANT: explicit N
         NI=P.NI,        # IMPORTANT: explicit NI
         perm=None,
         strengths=None,
@@ -105,13 +92,13 @@ def run_cascade(data_dir: str | Path, paramss: tuple[int, int, int, int, int, in
 
     # ---- (5) run simulation+analysis+store (expects ordered edge file exists) ----
     print(f"[5] running simulateAndStore(paramss={paramss}) ...")
-    simulateAndStore(paramss, Jbg=P.j_bg, prate=P.p_rate)
+    P.simulateAndStore(paramss, Jbg=P.J_bg, prate=P.p_rate)
     print("[5] done.")
 
 
 if __name__ == "__main__":
-    # (cp_index, ilb, inet, idtyp, idxprun, istage, iscale)
-    paramss = (0, 0, 0, 1, 2, 5, 0)
+    # (ilb, cp_index, inet, idtyp, idxprun, istage, iscale)
+    paramss = (1, 0, 0, 1, 2, 5, 0)
 
     data_dir = Path("data")
     run_cascade(data_dir, paramss)

@@ -1,6 +1,6 @@
 # Network Degeneration and Simulation Pipeline
 
-![degeneration pipeline](images/degeneration.png)
+![degeneration pipeline](images/degeneration.png) 
 
 ## Overview
 
